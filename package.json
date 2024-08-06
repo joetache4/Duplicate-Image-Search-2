@@ -1,0 +1,19 @@
+{
+  "name": "Duplicate Image Search",
+  "productName": "Duplicate Image Search",
+  "description": "Search for visually similar images on your hard drive.",
+  "keywords": [],
+  "main": "./main.js",
+  "version": "0.3.0",
+  "author": "Joe Walter",
+  "scripts": {
+    "start": "electron .",
+    "make": "electron-forge make"
+  },
+  "dependencies": {
+    "sharp": "^0.33.4"
+  },
+  "devDependencies": {
+    "electron": "31.2.1"
+  }
+}
