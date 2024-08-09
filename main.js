@@ -173,6 +173,7 @@ class ImageFile {
 
 	constructor(path) {
 		this.path      = path;
+		this.relpath   = null;
 		this.size      = null;
 		this.type      = null;
 		this.mtime     = null;
@@ -365,10 +366,11 @@ function startSearch(dir) {
 			if (stats.isDirectory()) {
 				walkSync(filePath);
 			} else if (ImageFile.formats.includes(ext)) {
-				const ifile = new ImageFile(filePath);
-				ifile.size  = stats.size;
-				ifile.type  = ext;
-				ifile.mtime = stats.mtime;
+				const ifile   = new ImageFile(filePath);
+				ifile.relpath = path.relative(dir, filePath);
+				ifile.size    = stats.size;
+				ifile.type    = ext;
+				ifile.mtime   = stats.mtime;
 				files.push(ifile);
 			}
 		});
