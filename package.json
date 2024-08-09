@@ -1,9 +1,9 @@
 {
-  "name": "Duplicate Image Search",
+  "name": "duplicate-image-search",
   "productName": "Duplicate Image Search",
   "description": "Search for visually similar images on your hard drive.",
   "keywords": [],
-  "main": "./main.js",
+  "main": "./src/main.js",
   "version": "0.3.0",
   "author": "Joe Walter",
   "scripts": {
