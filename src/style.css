@@ -329,10 +329,6 @@ input[type="checkbox"] {
 	background-color: #333;
 }
 
-.file-lists > span {
-	margin-right: 5px;
-}
-
 .text-button {
 	color: #F44;
 	cursor: pointer;
