@@ -1,13 +1,18 @@
-const allClusters = document.getElementById("clusters");
-const progressBar = document.getElementById("progress-bar-inner");
-const thumbnailQuality    = 60;
-const thumbnailMaxDim     = 160;
-const thumbnailOversample = 2;
+const Config = {
+	thumbnailQuality    : 60,
+	thumbnailMaxDim     : 160,
+	thumbnailOversample : 2,
+}
 
 const State = {
 	isMouseDown        : false,
 	highlighted        : [],
 	highlightDirection : "",
+}
+
+const DOM = {
+	allClusters : document.getElementById("clusters"),
+	progressBar : document.getElementById("progress-bar-inner"),
 }
 
 window.api.receive("searchBegun", () => {
@@ -55,9 +60,9 @@ function pendingSearch(dragged = null) {
 
 	window.api.send("pendingSearch", [
 		document.getElementById("fast-option").checked,
-		thumbnailQuality,
-		thumbnailMaxDim,
-		thumbnailOversample,
+		Config.thumbnailQuality,
+		Config.thumbnailMaxDim,
+		Config.thumbnailOversample,
 		dragged,
 	]);
 }
@@ -66,7 +71,7 @@ function copyToClipboard(text) {
 	navigator.clipboard.writeText(text);
 	document.getElementById("message").textContent = "Copied to clipboard!";
 	document.getElementById("message").classList.remove("hidden");
-	setTimeout(function() {
+	setTimeout(() => {
 		document.getElementById("message").classList.add("hidden");
 	}, 1000);
 }
@@ -129,7 +134,7 @@ function updateUISearchStarted() {
 	document.getElementById("spinner").classList.add("hidden");
 	document.querySelector(".options-page").classList.add("hidden");
 	document.querySelector(".header").classList.remove("hidden");
-	allClusters.classList.remove("hidden");
+	DOM.allClusters.classList.remove("hidden");
 }
 
 function updateUIProgress(n, filecount, clusterCount) {
@@ -142,7 +147,7 @@ function updateUIProgress(n, filecount, clusterCount) {
 	if (pct < 5) {
 		pct = 5;
 	}
-	progressBar.style.width = "".concat(pct, "%");
+	DOM.progressBar.style.width = "".concat(pct, "%");
 }
 
 function updateUIDuplicateFound(ifile) {
@@ -152,7 +157,7 @@ function updateUIDuplicateFound(ifile) {
 	let divClusterInfo = document.querySelectorAll(".cluster-info")[ifile.clusterID];
 
 	if (divClusterImgs === undefined) {
-		const a = createChildDiv("cluster", allClusters);
+		const a = createChildDiv("cluster", DOM.allClusters);
 		const b = createChildDiv("cluster-num", a);
 		b.textContent = ifile.clusterID + 1;
 		const c = createChildDiv("cluster-content", a);
@@ -170,12 +175,16 @@ function updateUIDuplicateFound(ifile) {
 	thumb.title = ifile.path;
 	divImg.appendChild(thumb);
 	const divImgDims = createChildDiv("image-dims", divImg);
-	divImg.ondragstart = function() { return false; };
+	divImg.ondragstart = () => { return false; };
 
 	divImgDims.textContent = "".concat(ifile.width, "×", ifile.height);
-	thumb.width  = ifile.thumbw;
-	thumb.height = ifile.thumbh;
-	thumb.src    = ifile.thumbdata;
+	thumb.classList.add("hidden");
+	thumb.src = ifile.thumbdata;
+	thumb.onload = () => {
+		thumb.width = thumb.width / Config.thumbnailOversample;
+		thumb.height = thumb.height / Config.thumbnailOversample;
+		thumb.classList.remove("hidden");
+	}
 
 	const divImgInfo = createChildDiv("img-info", divClusterInfo);
 	const divImgSize = createChildSpan("img-info-part size", divImgInfo);
@@ -313,7 +322,7 @@ function updateUISearchDone(supportedImgCount, filecount, clusterCount) {
 			document.getElementById("message").textContent = "No duplicates found.";
 		}
 		document.getElementById("message").classList.remove("hidden");
-		allClusters.classList.add("hidden");
+		DOM.allClusters.classList.add("hidden");
 	}
 }
 
@@ -337,7 +346,7 @@ function reloadPage() {
 
 function showAllList() {
 	let text = "";
-	for (let cluster of allClusters.querySelectorAll(".cluster")) {
+	for (let cluster of DOM.allClusters.querySelectorAll(".cluster")) {
 		let paths = cluster.querySelectorAll(".path");
 		if (paths.length) {
 			for (let path of paths) {
@@ -354,7 +363,7 @@ function showAllList() {
 
 function showHighlightedList() {
 	let text = "";
-	for (let cluster of allClusters.querySelectorAll(".cluster")) {
+	for (let cluster of DOM.allClusters.querySelectorAll(".cluster")) {
 		let paths = cluster.querySelectorAll(".highlighted.img-info > .path");
 		if (paths.length) {
 			for (let path of paths) {
@@ -396,7 +405,7 @@ function downloadList() {
 		a.download = filename;
 		document.body.appendChild(a);
 		a.click();
-		setTimeout(function() {
+		setTimeout(() => {
 			document.body.removeChild(a);
 			window.URL.revokeObjectURL(url);
 		}, 0);

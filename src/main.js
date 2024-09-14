@@ -147,12 +147,10 @@ ipcMain.on("openFileLocation", (event, path) => {
 
 class ImageFile {
 	static formats           = ["jpg", "jpeg", "png", "gif", "webp", "bmp"];
-
 	static maxFileSize       = 40*1024*1024;
 
-	static iconDim           = 11;   // Images will be processed into icons of this side length
-
-	static ratioTolerancePct = 10;
+	static iconDim           = 11;   // Images will be hashed into icons of this side length
+	static ratioTolerancePct = 10;   // Image aspect ratios may differ by up to 10% before comparing
 	static acceptLumaDist    = 2;    // Images will be considered similar if there luma distance is within this threshold
 	static rejectLumaDist    = 500;  // Images will be considered distinct if there luma distance is outside this threshold
 	static rejectChromaDist  = 1000; // Images will be considered distinct if there chroma distance is outside this threshold
@@ -177,26 +175,24 @@ class ImageFile {
 
 	constructor(filePath) {
 		this.path      = filePath;
+		this.size      = null;
+		this.mtime     = null;
 		this.relpath   = null;
 		this.depth     = filePath.split(path.sep).length - 1;
-		this.size      = null;
 		this.type      = path.extname(filePath).toLowerCase().substring(1);
-		this.mtime     = null;
-		this.val       = null;
+		this.valid     = null;
 		this.width     = null;
 		this.height    = null;
-		this.icondata  = null;
-		this.thumbdata = null;
-		this.thumbw    = null;
-		this.thumbh    = null;
+		this.hash      = null;
 		this.clusterID = null;
+		this.thumbdata = null;
 	}
 
-	valid() {
-		if (this.val === null) {
-			this.val = ImageFile.formats.includes(this.type) && this.size <= ImageFile.maxFileSize;
+	isValid() {
+		if (this.valid === null) {
+			this.valid = ImageFile.formats.includes(this.type) && this.size <= ImageFile.maxFileSize;
 		}
-		return this.val;
+		return this.valid;
 	}
 
 	async load() {
@@ -213,12 +209,12 @@ class ImageFile {
 					  height: ImageFile.canvasDim })
 			.raw()
 			.toBuffer()
-			.then(function(buffer) {
-				this.icondata = ImageFile.icon(buffer);
-			}.bind(this));
+			.then((buffer) => {
+				this.hash = ImageFile.getHash(buffer);
+			});
 	}
 
-	static icon(buffer) {
+	static getHash(buffer) {
 		let data = buffer;
 		data = ImageFile.boxBlur(data, ImageFile.canvasDim, ImageFile.canvasDim, ImageFile.cellDim, ImageFile.cellDim);
 		data = ImageFile.boxBlur(data, ImageFile.blockDim, ImageFile.blockDim, 3, 2);
@@ -294,7 +290,7 @@ class ImageFile {
 	}
 
 	similar(other) {
-		const icon1 = this.icondata, icon2 = other.icondata;
+		const icon1 = this.hash, icon2 = other.hash;
 		const w1 = this.width, w2 = other.width;
 		const h1 = this.height, h2 = other.height;
 
@@ -336,26 +332,22 @@ class ImageFile {
 		return true;
 	}
 
-	createThumb() {
+	async createThumbnail() {
 		let opts = null;
 		if (this.width >= this.height) {
-			this.thumbh = Config.thumbnailMaxDim;
-			this.thumbw = Math.floor(Config.thumbnailMaxDim * this.width / this.height);
 			opts = { fit    : "contain",
-					 height : this.thumbh * Config.thumbnailOversample };
+					 height : Config.thumbnailMaxDim * Config.thumbnailOversample };
 		} else {
-			this.thumbw = Config.thumbnailMaxDim;
-			this.thumbh = Math.floor(Config.thumbnailMaxDim * this.height / this.width);
 			opts = { fit   : "contain",
-					 width : this.thumbw * Config.thumbnailOversample };
+					 width : Config.thumbnailMaxDim * Config.thumbnailOversample };
 		}
 		return sharp(this.path)
 			.resize(opts)
 			.jpeg({ quality: Config.thumbnailQuality })
 			.toBuffer()
-			.then(function(buffer) {
+			.then((buffer) => {
 				this.thumbdata = `data:image/jpeg;base64,${buffer.toString("base64")}`;
-			}.bind(this));
+			});
 	}
 }
 
@@ -386,7 +378,7 @@ function getImageFilesRecursive(filePath, root, arr) {
 		ifile.relpath = path.relative(root, filePath);
 		ifile.size    = stats.size;
 		ifile.mtime   = stats.mtime;
-		if (ifile.valid()) {
+		if (ifile.isValid()) {
 			arr.push(ifile);
 		}
 	}
@@ -470,22 +462,22 @@ function groupTogether(ifile1, ifile2) {
 	}
 
 	if (send2) {
-		ifile2.createThumb().then(() => {
+		ifile2.createThumbnail().then(() => {
 			if (!State.canceled) {
-				icon2 = ifile2.icondata;
-				ifile2.icondata = null;
+				const hash = ifile2.hash;
+				ifile2.hash = null;
 				mainWindow.webContents.send("duplicateFound", ifile2);
-				ifile2.icondata = icon2;
+				ifile2.hash = hash;
 			}
 		});
 	}
 	if (send1) {
-		ifile1.createThumb().then(() => {
+		ifile1.createThumbnail().then(() => {
 			if (!State.canceled) {
-				icon1 = ifile1.icondata;
-				ifile1.icondata = null;
+				const hash = ifile1.hash;
+				ifile1.hash = null;
 				mainWindow.webContents.send("duplicateFound", ifile1);
-				ifile1.icondata = icon1;
+				ifile1.hash = hash;
 			}
 		});
 
