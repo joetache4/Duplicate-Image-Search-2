@@ -174,18 +174,20 @@ class ImageFile {
 	}
 
 	constructor(filePath) {
-		this.path      = filePath;
-		this.size      = null;
-		this.mtime     = null;
-		this.relpath   = null;
-		this.depth     = filePath.split(path.sep).length - 1;
-		this.type      = path.extname(filePath).toLowerCase().substring(1);
-		this.valid     = null;
-		this.width     = null;
-		this.height    = null;
-		this.hash      = null;
-		this.clusterID = null;
-		this.thumbdata = null;
+		this.path       = filePath;
+		this.size       = null;
+		this.mtime      = null;
+		this.relpath    = null;
+		this.depth      = filePath.split(path.sep).length - 1;
+		this.type       = path.extname(filePath).toLowerCase().substring(1);
+		this.valid      = null;
+		this.width      = null;
+		this.height     = null;
+		this.hash       = null;
+		this.clusterID  = null;
+		this.thumbStart = null;
+		this.thumbEnd   = null;
+		this.thumbdata  = null;
 	}
 
 	isValid() {
@@ -204,20 +206,19 @@ class ImageFile {
 
 		if (Config.fastRead && metadata.exif) {
 			let buf = metadata.exif;
-			let start = 0, end = 0;
-			for(let i = 0; i < buf.length-1; i++) {
+			for(let i = buf.length-2; i >= 0; i--) {
 				if (buf[i] == 0xFF) {
-					if (buf[i+1] == 0xD8) {
-						start = i;
-					} else if (start && buf[i+1] == 0xD9) {
-						end = i+2;
+					if (buf[i+1] == 0xD9) {
+						this.thumbEnd = i+2;
+					} else if (this.thumbEnd && buf[i+1] == 0xD8) {
+						this.thumbStart = i;
 						break;
 					}
 				}
 			}
-			if (end) {
+			if (this.thumbStart) {
 				console.log("found thumbnail: " + this.path);
-				image = await sharp(buf.slice(start, end));
+				image = await sharp(buf.slice(this.thumbStart, this.thumbEnd));
 			}
 		}
 
@@ -360,7 +361,17 @@ class ImageFile {
 			opts = { fit   : "contain",
 					 width : Config.thumbnailMaxDim * Config.thumbnailOversample };
 		}
-		return sharp(this.path)
+		let image;
+		if (this.thumbStart) {
+			image = await sharp(this.path)
+				.metadata()
+				.then((data) => {
+					return sharp(data.exif.slice(this.thumbStart, this.thumbEnd));
+				});
+		} else {
+			image = sharp(this.path);
+		}
+		return image
 			.resize(opts)
 			.jpeg({ quality: Config.thumbnailQuality })
 			.toBuffer()
