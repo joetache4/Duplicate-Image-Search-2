@@ -391,11 +391,14 @@ textarea {
 	padding: 0px 8px 0px 8px;
 	text-align: center;
 	cursor: pointer;
-	margin-right: 4px;
 }
 
 .cluster-num:hover {
 	background-color: #555;
+}
+
+.cluster-info {
+	margin-left: 4px;	
 }
 
 .cluster-num.some-selected {
@@ -420,7 +423,7 @@ textarea {
 
 .div-img {
 	text-align: center;
-	margin: 0px 4px 0px 0px;
+	margin-left: 4px;	
 	padding: 2px;
 }
 
