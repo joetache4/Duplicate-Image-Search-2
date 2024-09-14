@@ -23,7 +23,8 @@ function createWindow () {
 			nodeIntegration: false,
 			contextIsolation: true,
 			enableRemoteModule: false,
-		}
+		},
+		icon: path.join(__dirname, "..", "resources", "icon.png"),
 	});
 	mainWindow.maximize();
 	mainWindow.loadFile("src/index.html")
