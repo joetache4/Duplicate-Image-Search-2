@@ -4,7 +4,11 @@ const thumbnailQuality    = 60;
 const thumbnailMaxDim     = 160;
 const thumbnailOversample = 2;
 
-let highlighted = 0;
+const State = {
+	isMouseDown        : false,
+	highlighted        : 0,
+	highlightDirection : "",
+}
 
 window.api.receive("searchBegun", () => {
 	console.log("search started");
@@ -59,6 +63,7 @@ window.api.receive("duplicateFound", (ifile) => {
 	thumb.title = ifile.path;
 	divImg.appendChild(thumb);
 	const divImgDims = createChildDiv("image-dims", divImg);
+	divImg.ondragstart = function() { return false; };
 
 	divImgDims.textContent = "".concat(ifile.width, "×", ifile.height);
 	thumb.width  = ifile.thumbw;
@@ -73,29 +78,53 @@ window.api.receive("duplicateFound", (ifile) => {
 	divImgDate.textContent = formatDate(new Date(ifile.mtime));
 	divImgPath.textContent = ifile.relpath;
 
-	hoverFunc = () => {
-		divImgInfo.classList.toggle("hovered");
-		divImg.classList.toggle("hovered");
+	mouseOverFunc = (event) => {
+		divImgInfo.classList.add("hovered");
+		divImg.classList.add("hovered");
+		if (State.isMouseDown) {
+			if (divImgInfo.classList.contains("highlighted")) {
+				if (State.highlightDirection !== "adding") {
+					State.highlightDirection = "removing";
+					State.highlighted--;
+					divImgInfo.classList.remove("highlighted");
+					divImg.classList.remove("highlighted");
+				}
+			} else {
+				if (State.highlightDirection !== "removing") {
+					State.highlightDirection = "adding";
+					State.highlighted++;
+					divImgInfo.classList.add("highlighted");
+					divImg.classList.add("highlighted");
+				}
+			}
+		}
 	}
-	clickFunc = (event) => {
+	mouseOutFunc = (event) => {
+		divImgInfo.classList.remove("hovered");
+		divImg.classList.remove("hovered");
+	}
+	mouseDownFunc = (event) => {
 		if (event.ctrlKey) {
+			event.stopPropagation();
 			window.api.send("openFileLocation", ifile.path);
 		} else {
 			divImgInfo.classList.toggle("highlighted");
 			divImg.classList.toggle("highlighted");
 			if (divImgInfo.classList.contains("highlighted")) {
-				highlighted++;
+				State.highlighted++;
+				State.highlightDirection = "adding";
 			} else {
-				highlighted--;
+				State.highlighted--;
+				State.highlightDirection = "removing";
 			}
 		}
 	}
-	divImgInfo.addEventListener("mouseover", hoverFunc);
-	divImg.addEventListener("mouseover", hoverFunc);
-	divImgInfo.addEventListener("mouseout", hoverFunc);
-	divImg.addEventListener("mouseout", hoverFunc);
-	divImgInfo.addEventListener("click", clickFunc);
-	divImg.addEventListener("click", clickFunc);
+	divImgInfo.addEventListener("mouseover", mouseOverFunc);
+	divImg.addEventListener("mouseover", mouseOverFunc);
+	divImgInfo.addEventListener("mouseout", mouseOutFunc);
+	divImg.addEventListener("mouseout", mouseOutFunc);
+	divImgInfo.addEventListener("mousedown", mouseDownFunc);
+	divImg.addEventListener("mousedown", mouseDownFunc);
 
 	let parts = divClusterInfo.querySelectorAll(".img-info-part.size");
 	let bestPart = null, bestVal = 0, val = null;
@@ -255,7 +284,9 @@ function togglePause() {
 
 function reloadPage() {
 	location.reload();
-	highlighted = 0;
+	State.isMouseDown = false;
+	State.highlighted = 0;
+	State.highlightDirection = ""; // TODO not sure I need to manually reset these
 	window.api.send("cancelSearch");
 }
 
@@ -357,4 +388,13 @@ document.addEventListener("drop", (event) => {
         paths.push(f.path);
     }
     startSearch(paths);
+});
+
+document.addEventListener('mousedown', () => {
+	State.isMouseDown = true;
+});
+
+document.addEventListener('mouseup', () => {
+	State.isMouseDown = false;
+	State.highlightDirection = "";
 });
