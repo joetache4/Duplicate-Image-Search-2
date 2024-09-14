@@ -462,26 +462,30 @@ function groupTogether(ifile1, ifile2) {
 	}
 
 	if (send2) {
+		const hash = ifile2.hash;
+		ifile2.hash = null;
+		mainWindow.webContents.send("duplicateFound", ifile2);
+		ifile2.hash = hash;
 		ifile2.createThumbnail().then(() => {
 			if (!State.canceled) {
-				const hash = ifile2.hash;
-				ifile2.hash = null;
-				mainWindow.webContents.send("duplicateFound", ifile2);
-				ifile2.hash = hash;
+				mainWindow.webContents.send("thumbnailCreated", ifile2.relpath, ifile2.width, ifile2.height, ifile2.thumbdata);
+				ifile2.thumbdata = null;
 			}
 		});
 	}
 	if (send1) {
+		const hash = ifile1.hash;
+		ifile1.hash = null;
+		mainWindow.webContents.send("duplicateFound", ifile1);
+		ifile1.hash = hash;
 		ifile1.createThumbnail().then(() => {
 			if (!State.canceled) {
-				const hash = ifile1.hash;
-				ifile1.hash = null;
-				mainWindow.webContents.send("duplicateFound", ifile1);
-				ifile1.hash = hash;
+				mainWindow.webContents.send("thumbnailCreated", ifile1.relpath, ifile1.width, ifile1.height, ifile1.thumbdata);
+				ifile1.thumbdata = null;
 			}
 		});
-
 	}
+
 }
 
 function openFileBrowser(path) {

@@ -8,6 +8,7 @@ const State = {
 	isMouseDown        : false,
 	highlighted        : [],
 	highlightDirection : "",
+	awaitingThumbnails : [],
 }
 
 const DOM = {
@@ -33,6 +34,10 @@ window.api.receive("updateProgress", (n, filecount, clusterCount) => {
 
 window.api.receive("duplicateFound", (ifile) => {
 	updateUIDuplicateFound(ifile);
+});
+
+window.api.receive("thumbnailCreated", (relpath, width, height, thumbdata) => {
+	updateUIThumbnailGenerated(relpath, width, height, thumbdata);
 });
 
 window.api.receive("endSearch", (supportedImgCount, filecount, clusterCount) => {
@@ -177,14 +182,8 @@ function updateUIDuplicateFound(ifile) {
 	const divImgDims = createChildDiv("image-dims", divImg);
 	divImg.ondragstart = () => { return false; };
 
-	divImgDims.textContent = "".concat(ifile.width, "×", ifile.height);
-	thumb.classList.add("hidden");
-	thumb.src = ifile.thumbdata;
-	thumb.onload = () => {
-		thumb.width = thumb.width / Config.thumbnailOversample;
-		thumb.height = thumb.height / Config.thumbnailOversample;
-		thumb.classList.remove("hidden");
-	}
+	divImg.classList.add("hidden");
+	State.awaitingThumbnails[ifile.relpath] = [thumb, divImgDims, divImg];
 
 	const divImgInfo = createChildDiv("img-info", divClusterInfo);
 	const divImgSize = createChildSpan("img-info-part size", divImgInfo);
@@ -301,6 +300,20 @@ function updateUIDuplicateFound(ifile) {
 		}
 	});
 };
+
+function updateUIThumbnailGenerated(relpath, width, height, thumbdata) {
+	let [thumb, divImgDims, divImg] = State.awaitingThumbnails[relpath];
+	State.awaitingThumbnails[relpath] = null;
+	divImgDims.textContent = "".concat(width, "×", height);
+	//thumb.classList.add("hidden");
+	thumb.src = thumbdata;
+	thumb.onload = () => {
+		thumb.width = thumb.width / Config.thumbnailOversample;
+		thumb.height = thumb.height / Config.thumbnailOversample;
+		//thumb.classList.remove("hidden");
+		divImg.classList.remove("hidden");
+	}
+}
 
 function updateUISearchDone(supportedImgCount, filecount, clusterCount) {
 	document.getElementById("button-pause-search").classList.add("hidden");
