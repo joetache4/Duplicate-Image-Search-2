@@ -63,7 +63,7 @@ const State = {
 };
 
 const Config = {
-	fastRead            : false, // TODO currently not implemented
+	fastRead            : false,
 	thumbnailQuality    : null,
 	thumbnailMaxDim     : null,
 	thumbnailOversample : null,
@@ -196,11 +196,30 @@ class ImageFile {
 	}
 
 	async load() {
-		const image    = await sharp(this.path);
+		let   image    = await sharp(this.path);
 		const metadata = await image.metadata();
 
 		this.width     = metadata.width;
 		this.height    = metadata.height;
+
+		if (Config.fastRead && metadata.exif) {
+			let buf = metadata.exif;
+			let start = 0, end = 0;
+			for(let i = 0; i < buf.length-1; i++) {
+				if (buf[i] == 0xFF) {
+					if (buf[i+1] == 0xD8) {
+						start = i;
+					} else if (start && buf[i+1] == 0xD9) {
+						end = i+2;
+						break;
+					}
+				}
+			}
+			if (end) {
+				console.log("found thumbnail: " + this.path);
+				image = await sharp(buf.slice(start, end));
+			}
+		}
 
 		return image
 			.removeAlpha()
