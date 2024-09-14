@@ -13,6 +13,8 @@ const path  = require("path");
 const fs    = require("fs");
 const sharp = require("sharp");
 
+const pathSort = require("./path-sort.js");
+
 let mainWindow;
 function createWindow () {
 	mainWindow = new BrowserWindow({
@@ -105,9 +107,7 @@ ipcMain.on("pendingSearch", (event, args) => {
 			getImageFilesRecursive(filePath, path.dirname(filePath), allImageFiles);
 		});
 		allImageFiles.sort((a,b) => {
-			const d = a.depth - b.depth;
-			if (d) return -d;
-			return -a.relpath.localeCompare(b.relpath); // negative b/c items will be popped from the back
+			return -pathSort.compare(a.relpath, b.relpath); // negative b/c items will be popped from the back
 		});
 
 		Results.filecount         = allImageFiles.length;
