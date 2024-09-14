@@ -254,9 +254,7 @@ function togglePause() {
 }
 
 function reloadPage() {
-	if (!highlighted || window.confirm("Are you sure? Your highlighted selections will be reset.")) {
-		location.reload();
-	}
+	location.reload();
 	highlighted = 0;
 	window.api.send("cancelSearch");
 }
