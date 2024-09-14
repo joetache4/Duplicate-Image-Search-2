@@ -57,7 +57,7 @@ h1 {
 }
 
 .hidden {
-	display: none;
+	display: none !important;
 }
 
 .noselect {
@@ -89,6 +89,50 @@ h1 {
 
 .options-page > h1 {
 	margin: 40px 0;
+}
+
+.start-buttons {
+	position: relative;
+}
+
+#spinner {
+	position: absolute;
+	padding: 5px 14px 5px 14px;
+}
+
+.spinner-dual-ring {
+	color: #F44;
+}
+
+.spinner-dual-ring, .spinner-dual-ring:after {
+	box-sizing: border-box;
+}
+
+.spinner-dual-ring {
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+}
+
+.spinner-dual-ring:after {
+	content: " ";
+	display: block;
+	width: 16px;
+	height: 16px;
+	margin: 2px;
+	border-radius: 50%;
+	border: 3px solid currentColor;
+	border-color: currentColor transparent currentColor transparent;
+	animation: spinner-dual-ring 1.2s linear infinite;
+}
+
+@keyframes spinner-dual-ring {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
 }
 
 .fast-option {

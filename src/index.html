@@ -16,14 +16,15 @@
 
 	<h1>Duplicate Image Search</h1>
 
-	<div>
-	<div id="select-button" class="button tall-button" onclick="startSearch()">Select folder</div>
+	<div class="start-buttons">
+	<div id="select-button" class="button tall-button" onclick="pendingSearch()">Select folder</div>
 	<div id="cancel-button" class="button hollow-button tall-button hidden" onclick="reloadPage()">Cancel Search</div>
+	<span id="spinner" class="hidden"><div class="spinner-dual-ring"></div></span>
 	</div>
 
 	<div class="fast-option noselect" onclick="clickCheckbox(event)">
 	<input type="checkbox" id="fast-option" onclick="updateLocalStorage()">
-	<div class="option-text"><span class="tooltip right" data-tip="This may be faster when scanning many JPEG photographs, especially if they were taken from a professional camera. However, there is a slightly higher chance to mismatch images. TODO: Currently not implemented.">Read JPEG Thumbnails</span></div>
+	<div class="option-text"><span class="tooltip right" data-tip="This may be faster when scanning a bunch of JPEG photos, especially if they were taken from a professional camera. However, there is a slightly higher chance to mismatch images. TODO: Currently not implemented.">Read JPEG Thumbnails</span></div>
 	</div>
 
 	<div class="footer">

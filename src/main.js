@@ -74,7 +74,7 @@ const Results = {
 	supportedImgCount : 0,
 };
 
-ipcMain.on("startSearch", (event, args) => {
+ipcMain.on("pendingSearch", (event, args) => {
 	Config.fastRead            = args[0];
 	Config.thumbnailQuality    = args[1];
 	Config.thumbnailMaxDim     = args[2];

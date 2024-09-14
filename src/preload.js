@@ -10,7 +10,7 @@ contextBridge.exposeInMainWorld(
 		// renderer -> main
         send: (channel, data) => {
             // whitelist channels
-            let validChannels = ["startSearch", "pauseSearch", "resumeSearch", "cancelSearch", "openFileLocation"];
+            let validChannels = ["pendingSearch", "pauseSearch", "resumeSearch", "cancelSearch", "openFileLocation"];
             if (validChannels.includes(channel)) {
                 ipcRenderer.send(channel, data);
             }

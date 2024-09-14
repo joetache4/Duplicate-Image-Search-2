@@ -13,20 +13,126 @@ const State = {
 window.api.receive("searchBegun", () => {
 	console.log("search started");
 
-	document.querySelector(".options-page").style.display = "none";
-	document.querySelector(".header").style.display = "block";
-	allClusters.style.display = "block";
+	updateUISearchStarted();
 });
 
 window.api.receive("cancelSearch", () => {
 	console.log("pending search cancelled");
 
-	//document.getElementById("cancel-button").style.display = "none";
-	//document.getElementById("select-button").style.display = "inline-block";
 	reloadPage();
 });
 
 window.api.receive("updateProgress", (n, filecount, clusterCount) => {
+	updateUIProgress(n, filecount, clusterCount);
+});
+
+window.api.receive("duplicateFound", (ifile) => {
+	updateUIDuplicateFound(ifile);
+});
+
+window.api.receive("endSearch", (supportedImgCount, filecount, clusterCount) => {
+	console.log("search ended");
+	console.log("total files: " + filecount);
+	console.log("supported images: " + supportedImgCount);
+	console.log("clusters found: " + clusterCount);
+
+	updateUISearchDone(supportedImgCount, filecount, clusterCount);
+});
+
+
+
+
+
+
+
+
+
+
+function pendingSearch(dragged = null) {
+	console.log("search pending");
+
+	updateUISearchPending();
+
+	window.api.send("pendingSearch", [
+		document.getElementById("fast-option").checked,
+		thumbnailQuality,
+		thumbnailMaxDim,
+		thumbnailOversample,
+		dragged,
+	]);
+}
+
+function copyToClipboard(text) {
+	navigator.clipboard.writeText(text);
+	document.getElementById("message").textContent = "Copied to clipboard!";
+	document.getElementById("message").classList.remove("hidden");
+	setTimeout(function() {
+		document.getElementById("message").classList.add("hidden");
+	}, 1000);
+}
+
+function updateText(element, text) {
+	document.querySelector(element).textContent = text;
+}
+
+function createChildDiv(className, parent) {
+	const element = document.createElement("div");
+	element.className = className;
+	parent.appendChild(element);
+	return element;
+}
+
+function createChildSpan(className, parent) {
+	const element = document.createElement("span");
+	element.className = className;
+	parent.appendChild(element);
+	return element;
+}
+
+function formatDate(d){
+	return d.getFullYear() + "." + (d.getMonth()+1).toString().padStart(2, "0") + "." + d.getDate().toString().padStart(2, "0");
+}
+
+function updateLocalStorage() {
+	localStorage.setItem("fast-option", document.getElementById("fast-option").checked);
+	return;
+}
+
+function updateUIOptions() {
+	if (localStorage.getItem("fast-option") == null) {
+		document.getElementById("fast-option").checked = true;
+		return;
+	}
+	if (localStorage.getItem("fast-option") == "false") {
+		document.getElementById("fast-option").checked = false;
+	} else {
+		document.getElementById("fast-option").checked = true;
+	}
+	return;
+}
+
+function clickCheckbox(event) {
+	if (event.target.tagName != 'INPUT') {
+		document.getElementById('fast-option').click();
+	}
+}
+
+function updateUISearchPending() {
+	setTimeout(() => {
+		document.getElementById("cancel-button").classList.remove("hidden");
+		document.getElementById("select-button").classList.add("hidden");
+		document.getElementById("spinner").classList.remove("hidden");
+	}, 500); // start after the file picker is displayed
+}
+
+function updateUISearchStarted() {
+	document.getElementById("spinner").classList.add("hidden");
+	document.querySelector(".options-page").classList.add("hidden");
+	document.querySelector(".header").classList.remove("hidden");
+	allClusters.classList.remove("hidden");
+}
+
+function updateUIProgress(n, filecount, clusterCount) {
 	let s = "s";
 	if (clusterCount == 1) {
 		s = "";
@@ -37,9 +143,9 @@ window.api.receive("updateProgress", (n, filecount, clusterCount) => {
 		pct = 5;
 	}
 	progressBar.style.width = "".concat(pct, "%");
-});
+}
 
-window.api.receive("duplicateFound", (ifile) => {
+function updateUIDuplicateFound(ifile) {
 	console.log("" + (ifile.clusterID+1) + " <- " + ifile.path);
 
 	let divClusterImgs = document.querySelectorAll(".cluster-imgs")[ifile.clusterID];
@@ -166,15 +272,10 @@ window.api.receive("duplicateFound", (ifile) => {
 			part.classList.add("best-part");
 		}
 	});
-});
+};
 
-window.api.receive("endSearch", (supportedImgCount, filecount, clusterCount) => {
-	console.log("search ended");
-	console.log("total files: " + filecount);
-	console.log("supported images: " + supportedImgCount);
-	console.log("clusters found: " + clusterCount);
-
-	document.getElementById("button-pause-search").style.display = "none";
+function updateUISearchDone(supportedImgCount, filecount, clusterCount) {
+	document.getElementById("button-pause-search").classList.add("hidden");
 	const progress = document.querySelector(".progress");
 	progress.removeChild(progress.querySelector(".progress-bar"));
 	let s = "s", s2 = "s";
@@ -192,83 +293,8 @@ window.api.receive("endSearch", (supportedImgCount, filecount, clusterCount) => 
 		} else {
 			document.getElementById("message").textContent = "No duplicates found.";
 		}
-		document.getElementById("message").style.display = "block";
-		allClusters.style.display = "none";
-	}
-});
-
-
-
-
-
-
-
-
-
-
-function startSearch(dragged = null) {
-	console.log("search started");
-
-	document.getElementById("cancel-button").style.display = "inline-block";
-	document.getElementById("select-button").style.display = "none";
-
-	window.api.send("startSearch", [
-		document.getElementById("fast-option").checked,
-		thumbnailQuality,
-		thumbnailMaxDim,
-		thumbnailOversample,
-		dragged,
-	]);
-}
-
-function copyToClipboard(text) {
-	navigator.clipboard.writeText(text);
-	document.getElementById("message").textContent = "Copied to clipboard!";
-	document.getElementById("message").style.display = "block";
-	setTimeout(function() {
-		document.getElementById("message").style.display = "none";
-	}, 1000);
-}
-
-function updateText(element, text) {
-	document.querySelector(element).textContent = text;
-}
-
-function createChildDiv(className, parent) {
-	const element = document.createElement("div");
-	element.className = className;
-	parent.appendChild(element);
-	return element;
-}
-
-function createChildSpan(className, parent) {
-	const element = document.createElement("span");
-	element.className = className;
-	parent.appendChild(element);
-	return element;
-}
-
-function updateLocalStorage() {
-	localStorage.setItem("fast-option", document.getElementById("fast-option").checked);
-	return;
-}
-
-function updateUIOptions() {
-	if (localStorage.getItem("fast-option") == null) {
-		document.getElementById("fast-option").checked = true;
-		return;
-	}
-	if (localStorage.getItem("fast-option") == "false") {
-		document.getElementById("fast-option").checked = false;
-	} else {
-		document.getElementById("fast-option").checked = true;
-	}
-	return;
-}
-
-function clickCheckbox(event) {
-	if (event.target.tagName != 'INPUT') {
-		document.getElementById('fast-option').click();
+		document.getElementById("message").classList.remove("hidden");
+		allClusters.classList.add("hidden");
 	}
 }
 
@@ -288,10 +314,6 @@ function reloadPage() {
 	State.highlighted = 0;
 	State.highlightDirection = ""; // TODO not sure I need to manually reset these
 	window.api.send("cancelSearch");
-}
-
-function formatDate(d){
-	return d.getFullYear() + "." + (d.getMonth()+1).toString().padStart(2, "0") + "." + d.getDate().toString().padStart(2, "0");
 }
 
 function showAllList() {
@@ -387,14 +409,14 @@ document.addEventListener("drop", (event) => {
         console.log("Dragged file: ", f.path)
         paths.push(f.path);
     }
-    startSearch(paths);
+    pendingSearch(paths);
 });
 
-document.addEventListener('mousedown', () => {
+document.addEventListener("mousedown", () => {
 	State.isMouseDown = true;
 });
 
-document.addEventListener('mouseup', () => {
+document.addEventListener("mouseup", () => {
 	State.isMouseDown = false;
 	State.highlightDirection = "";
 });
