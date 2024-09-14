@@ -451,7 +451,7 @@ function groupTogether(ifile1, ifile2) {
 	if (i == null && j == null) {
 		ifile1.clusterID = Results.clusterCount;
 		ifile2.clusterID = Results.clusterCount;
-		Results.clusters.push([ifile1, ifile2]);
+		Results.clusters.push([ifile2, ifile1]);
 		Results.clusterCount++;
 		send1 = true;
 		send2 = true;
@@ -469,6 +469,16 @@ function groupTogether(ifile1, ifile2) {
 		send1 = true;
 	}
 
+	if (send2) {
+		ifile2.createThumb().then(() => {
+			if (!State.canceled) {
+				icon2 = ifile2.icondata;
+				ifile2.icondata = null;
+				mainWindow.webContents.send("duplicateFound", ifile2);
+				ifile2.icondata = icon2;
+			}
+		});
+	}
 	if (send1) {
 		ifile1.createThumb().then(() => {
 			if (!State.canceled) {
@@ -479,16 +489,6 @@ function groupTogether(ifile1, ifile2) {
 			}
 		});
 
-	}
-	if (send2) {
-		ifile2.createThumb().then(() => {
-			if (!State.canceled) {
-				icon2 = ifile2.icondata;
-				ifile2.icondata = null;
-				mainWindow.webContents.send("duplicateFound", ifile2);
-				ifile2.icondata = icon2;
-			}
-		});
 	}
 }
 
