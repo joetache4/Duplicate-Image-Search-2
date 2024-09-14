@@ -82,7 +82,7 @@ window.api.receive("duplicateFound", (ifile) => {
 	const divImgPath = createChildSpan("img-info-part path", divImgInfo);
 	divImgSize.textContent = parseInt(ifile.size/1024);
 	divImgDate.textContent = formatDate(new Date(ifile.mtime));
-	divImgPath.textContent = ifile.path;
+	divImgPath.textContent = ifile.relpath;
 
 	// alphabetize images by path name
 	tmp = Array.from(divClusterImgs.children)
