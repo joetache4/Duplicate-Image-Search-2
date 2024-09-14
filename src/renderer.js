@@ -6,21 +6,7 @@ const thumbnailOversample = 2;
 
 let highlighted = 0;
 
-function searchPending() {
-	console.log("search pending");
-
-	document.getElementById("cancel-button").style.display = "inline-block";
-	document.getElementById("select-button").style.display = "none";
-
-	window.api.send("pendingSearch", [
-		document.getElementById("fast-option").checked,
-		thumbnailQuality,
-		thumbnailMaxDim,
-		thumbnailOversample,
-	]);
-}
-
-window.api.receive("startSearch", () => {
+window.api.receive("searchBegun", () => {
 	console.log("search started");
 
 	document.querySelector(".options-page").style.display = "none";
@@ -28,7 +14,7 @@ window.api.receive("startSearch", () => {
 	allClusters.style.display = "block";
 });
 
-window.api.receive("cancelPendingSearch", () => {
+window.api.receive("cancelSearch", () => {
 	console.log("pending search cancelled");
 
 	//document.getElementById("cancel-button").style.display = "none";
@@ -86,26 +72,6 @@ window.api.receive("duplicateFound", (ifile) => {
 	divImgSize.textContent = parseInt(ifile.size/1024);
 	divImgDate.textContent = formatDate(new Date(ifile.mtime));
 	divImgPath.textContent = ifile.relpath;
-
-	// alphabetize images by path name
-	tmp = Array.from(divClusterImgs.children)
-	tmp.sort((a,b) => {
-		textA = a.children[0].title;
-		textB = b.children[0].title;
-		return textA.localeCompare(textB);
-	});
-	divClusterImgs.innerHTML = "";
-	tmp.forEach(child => divClusterImgs.appendChild(child));
-
-	// alphabetize path names
-	tmp = Array.from(divClusterInfo.children)
-	tmp.sort((a,b) => {
-		textA = a.querySelector(".path").textContent;
-		textB = b.querySelector(".path").textContent;
-		return textA.localeCompare(textB);
-	});
-	divClusterInfo.innerHTML = "";
-	tmp.forEach(child => divClusterInfo.appendChild(child));
 
 	hoverFunc = () => {
 		divImgInfo.classList.toggle("hovered");
@@ -210,6 +176,30 @@ window.api.receive("endSearch", (supportedImgCount, filecount, clusterCount) => 
 
 
 
+
+function startSearch(dragged = null) {
+	console.log("search started");
+
+	document.getElementById("cancel-button").style.display = "inline-block";
+	document.getElementById("select-button").style.display = "none";
+
+	window.api.send("startSearch", [
+		document.getElementById("fast-option").checked,
+		thumbnailQuality,
+		thumbnailMaxDim,
+		thumbnailOversample,
+		dragged,
+	]);
+}
+
+function copyToClipboard(text) {
+	navigator.clipboard.writeText(text);
+	document.getElementById("message").textContent = "Copied to clipboard!";
+	document.getElementById("message").style.display = "block";
+	setTimeout(function() {
+		document.getElementById("message").style.display = "none";
+	}, 1000);
+}
 
 function updateText(element, text) {
 	document.querySelector(element).textContent = text;
@@ -317,13 +307,7 @@ function toggleList() {
 }
 
 function copyListToClipboard() {
-	const text = document.querySelector(".textarea").value;
-	navigator.clipboard.writeText(text);
-	document.getElementById("message").textContent = "Copied to clipboard!";
-	document.getElementById("message").style.display = "block";
-	setTimeout(function() {
-		document.getElementById("message").style.display = "none";
-	}, 1000);
+	copyToClipboard(document.querySelector(".textarea").value);
 }
 
 function downloadList() {
@@ -356,4 +340,21 @@ window.addEventListener("DOMContentLoaded", () => {
 			toggleList();
 		}
 	});
+});
+
+document.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+});
+
+document.addEventListener("drop", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    let paths = [];
+    for (const f of event.dataTransfer.files) {
+        console.log("Dragged file: ", f.path)
+        paths.push(f.path);
+    }
+    startSearch(paths);
 });

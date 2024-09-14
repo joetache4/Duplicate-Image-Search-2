@@ -44,19 +44,18 @@ app.whenReady().then(() => {
 	createWindow();
 	app.on("activate", function () {
 		if (BrowserWindow.getAllWindows().length === 0) createWindow();
-	})
-})
+	});
+});
 
 app.on("window-all-closed", function () {
 	if (process.platform !== "darwin") app.quit()
-})
+});
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////// search code //////////////////////////////////////
 
 const State = {
-	started   : false,
 	paused    : false,
 	canceled  : false,
 };
@@ -75,38 +74,57 @@ const Results = {
 	supportedImgCount : 0,
 };
 
-ipcMain.on("pendingSearch", (event, args) => {
-	if (State.started) {
-		mainWindow.webContents.send("cancelPendingSearch");
-		return;
-	}
-
+ipcMain.on("startSearch", (event, args) => {
 	Config.fastRead            = args[0];
 	Config.thumbnailQuality    = args[1];
 	Config.thumbnailMaxDim     = args[2];
 	Config.thumbnailOversample = args[3];
 
-	dialog.showOpenDialog({
-		properties: ['openDirectory']
-	})
-	.then(result => {
-		if (result.canceled) {
-			mainWindow.webContents.send("cancelPendingSearch");
+	const dragged              = args[4];
+
+	new Promise((resolve, reject) => {
+		if (dragged !== null && dragged.length) {
+			resolve(dragged);
 		} else {
-			const selectedDirectory = result.filePaths[0];
-			console.log("input dir: " + selectedDirectory);
-
-			State.started  = true;
-			State.paused   = false;
-			State.canceled = false; // TODO if the user is quick enough, callbacks from a previous search may still be in the queue
-
-			mainWindow.webContents.send("startSearch");
-			startSearch(selectedDirectory);
+			dialog.showOpenDialog({
+				properties: ['openDirectory']
+			})
+			.then(result => {
+				if (result.canceled) {
+					reject("File selection canceled.");
+				} else {
+					resolve(result.filePaths);
+				}
+			})
 		}
+	})
+	.then(inputPaths => {
+		allImageFiles = [];
+		inputPaths.forEach(filePath => {
+			console.log("input: " + filePath);
+			getImageFilesRecursive(filePath, path.dirname(filePath), allImageFiles);
+		});
+		allImageFiles.sort((a,b) => {
+			const d = a.depth - b.depth;
+			if (d) return -d;
+			return -a.relpath.localeCompare(b.relpath); // negative b/c items will be popped from the back
+		});
+
+		Results.filecount         = allImageFiles.length;
+		Results.clusters.length   = 0;
+		Results.clusterCount	  = 0;
+		Results.supportedImgCount = 0;
+
+		State.paused   = false;
+		State.canceled = false; // TODO if the user is quick enough, callbacks from a previous search may still be in the queue
+
+		mainWindow.webContents.send("searchBegun");
+
+		processNext(allImageFiles);
 	})
 	.catch(err => {
 		console.log(err);
-		mainWindow.webContents.send("cancelPendingSearch");
+		mainWindow.webContents.send("cancelSearch");
 	});
 });
 
@@ -119,7 +137,6 @@ ipcMain.on("resumeSearch", (event, args) => {
 });
 
 ipcMain.on("cancelSearch", (event, args) => {
-	State.started  = false;
 	State.paused   = false;
 	State.canceled = true;
 });
@@ -158,11 +175,12 @@ class ImageFile {
 		ImageFile.rejectChromaDist *= ImageFile.iconArea;
 	}
 
-	constructor(path) {
-		this.path      = path;
+	constructor(filePath) {
+		this.path      = filePath;
 		this.relpath   = null;
+		this.depth     = filePath.split(path.sep).length - 1;
 		this.size      = null;
-		this.type      = null;
+		this.type      = path.extname(filePath).toLowerCase().substring(1);
 		this.mtime     = null;
 		this.val       = null;
 		this.width     = null;
@@ -341,93 +359,83 @@ class ImageFile {
 	}
 }
 
-function startSearch(dir) {
-	const files = [];
-
-	const walkSync = d => {
-		
+function getImageFilesRecursive(filePath, root, arr) {
+	let stats;
+	try {
+		stats = fs.statSync(filePath);
+	} catch {
+		console.log("*** error accessing file: " + filePath);
+		return;
+	}
+	if (stats.isSymbolicLink()) {
+		return;
+	}
+	else if (stats.isDirectory()) {
+		let children;
 		try {
-			var children = fs.readdirSync(d);
+			children = fs.readdirSync(filePath);
 		} catch {
-			console.log("*** error scanning dir: " + d);
+			console.log("*** error scanning dir: " + filePath);
 			return;
 		}
 		children.forEach(f => {
-			const filePath = path.join(d, f);
-			const ext      = path.extname(filePath).toLowerCase().substring(1);
-			const stats    = fs.statSync(filePath);
-
-			if (stats.isSymbolicLink()) {
-				return;
-			}
-			else if (stats.isDirectory()) {
-				walkSync(filePath);
-			} else if (stats.isFile() && ImageFile.formats.includes(ext)) {
-				const ifile   = new ImageFile(filePath);
-				ifile.relpath = path.relative(dir, filePath);
-				ifile.size    = stats.size;
-				ifile.type    = ext;
-				ifile.mtime   = stats.mtime;
-				files.push(ifile);
-			}
+			getImageFilesRecursive(path.join(filePath, f), root, arr);
 		});
-	};
-
-	walkSync(dir);
-
-	Results.filecount         = files.length;
-	Results.clusters.length   = 0;
-	Results.clusterCount	  = 0;
-	Results.supportedImgCount = 0;
-
-	processNext(files);
+	} else if (stats.isFile()) {
+		const ifile   = new ImageFile(filePath);
+		ifile.relpath = path.relative(root, filePath);
+		ifile.size    = stats.size;
+		ifile.mtime   = stats.mtime;
+		if (ifile.valid()) {
+			arr.push(ifile);
+		}
+	}
 }
 
-function processNext(files, n=0) {
+function processNext(files, scannedFiles=null, n=0) {
 	if (State.canceled) {
 		return;
 	}
-	if (n >= files.length) {
+	if (!files.length) {
 		mainWindow.webContents.send("endSearch", Results.supportedImgCount, Results.filecount, Results.clusterCount);
 		return;
 	}
 	if (State.paused) {
 		setTimeout(() => {
-			processNext(files, n);
+			processNext(files, scannedFiles, n);
 		}, 1000);
 		return;
+	}
+	if (scannedFiles == null) {
+		scannedFiles = [];
 	}
 
 	mainWindow.webContents.send("updateProgress", n, Results.filecount, Results.clusterCount);
 
-	ifile = files[n];
-
-	if (!ifile.valid()) {
-		processNext(files, n+1);
-		return;
-	}
+	let ifile = files.pop();
 
 	Results.supportedImgCount++;
 
 	ifile.load()
 		.then(() => {
-			if (!State.canceled)
-				searchForMatch(files, n);
+			if (!State.canceled) {
+				searchForMatch(ifile, scannedFiles);
+				scannedFiles.push(ifile);
+			}
 		})
 		.catch((err) => {
-			console.log("*** error loading " + ifile.path + ": " + err);
-			ifile.val = false;
+			console.log("*** error loading " + ifile.path);
+			console.log(err);
 		})
 		.finally(() => {
-			processNext(files, n+1);
+			if (!State.canceled)
+				processNext(files, scannedFiles, n+1);
 		});
 }
 
-function searchForMatch(files, n) {
-	let ifile = files[n], ifile2 = null;
-	for (let m=0; m<n; m++) {
-		ifile2 = files[m];
-		if (ifile2.valid() && ifile.similar(ifile2)) {
+function searchForMatch(ifile, scannedFiles) {
+	for (const ifile2 of scannedFiles) {
+		if (ifile.similar(ifile2)) {
 			groupTogether(ifile, ifile2);
 			break;
 		}

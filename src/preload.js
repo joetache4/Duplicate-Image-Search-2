@@ -10,14 +10,14 @@ contextBridge.exposeInMainWorld(
 		// renderer -> main
         send: (channel, data) => {
             // whitelist channels
-            let validChannels = ["pendingSearch", "pauseSearch", "resumeSearch", "cancelSearch", "openFileLocation"];
+            let validChannels = ["startSearch", "pauseSearch", "resumeSearch", "cancelSearch", "openFileLocation"];
             if (validChannels.includes(channel)) {
                 ipcRenderer.send(channel, data);
             }
         },
 		// main -> renderer
         receive: (channel, func) => {
-            let validChannels = ["startSearch", "cancelPendingSearch", "updateProgress", "duplicateFound", "endSearch"];
+            let validChannels = ["searchBegun", "cancelSearch", "updateProgress", "duplicateFound", "endSearch"];
             if (validChannels.includes(channel)) {
                 // Deliberately strip event as it includes `sender`
                 ipcRenderer.on(channel, (event, ...args) => func(...args));
