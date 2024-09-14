@@ -103,6 +103,7 @@ ipcMain.on("pendingSearch", (event, args) => {
 	})
 	.catch(err => {
 		console.log(err);
+		mainWindow.webContents.send("cancelPendingSearch");
 	});
 });
 
@@ -341,14 +342,24 @@ function startSearch(dir) {
 	const files = [];
 
 	const walkSync = d => {
-		fs.readdirSync(d).forEach(f => {
+		
+		try {
+			var children = fs.readdirSync(d);
+		} catch {
+			console.log("*** error scanning dir: " + d);
+			return;
+		}
+		children.forEach(f => {
 			const filePath = path.join(d, f);
 			const ext      = path.extname(filePath).toLowerCase().substring(1);
 			const stats    = fs.statSync(filePath);
 
-			if (stats.isDirectory()) {
+			if (stats.isSymbolicLink()) {
+				return;
+			}
+			else if (stats.isDirectory()) {
 				walkSync(filePath);
-			} else if (ImageFile.formats.includes(ext)) {
+			} else if (stats.isFile() && ImageFile.formats.includes(ext)) {
 				const ifile   = new ImageFile(filePath);
 				ifile.relpath = path.relative(dir, filePath);
 				ifile.size    = stats.size;
@@ -387,7 +398,6 @@ function processNext(files, n=0) {
 	mainWindow.webContents.send("updateProgress", n, Results.filecount, Results.clusterCount);
 
 	ifile = files[n];
-	console.log("processing: " + ifile.path);
 
 	if (!ifile.valid()) {
 		processNext(files, n+1);
