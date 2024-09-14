@@ -30,7 +30,7 @@ window.api.receive("startSearch", () => {
 
 window.api.receive("cancelPendingSearch", () => {
 	console.log("pending search cancelled");
-	
+
 	//document.getElementById("cancel-button").style.display = "none";
 	//document.getElementById("select-button").style.display = "inline-block";
 	reloadPage();
@@ -93,7 +93,7 @@ window.api.receive("duplicateFound", (ifile) => {
 	});
 	divClusterImgs.innerHTML = "";
 	tmp.forEach(child => divClusterImgs.appendChild(child));
-	
+
 	// alphabetize path names
 	tmp = Array.from(divClusterInfo.children)
 	tmp.sort((a,b) => {
@@ -108,21 +108,25 @@ window.api.receive("duplicateFound", (ifile) => {
 		divImgInfo.classList.toggle("hovered");
 		divImg.classList.toggle("hovered");
 	}
-	highlightFunc = () => {
-		divImgInfo.classList.toggle("highlighted");
-		divImg.classList.toggle("highlighted");
-		if (divImgInfo.classList.contains("highlighted")) {
-			highlighted++;
+	clickFunc = (event) => {
+		if (event.ctrlKey) {
+			window.api.send("openFileLocation", ifile.path);
 		} else {
-			highlighted--;
+			divImgInfo.classList.toggle("highlighted");
+			divImg.classList.toggle("highlighted");
+			if (divImgInfo.classList.contains("highlighted")) {
+				highlighted++;
+			} else {
+				highlighted--;
+			}
 		}
 	}
 	divImgInfo.addEventListener("mouseover", hoverFunc);
 	divImg.addEventListener("mouseover", hoverFunc);
 	divImgInfo.addEventListener("mouseout", hoverFunc);
 	divImg.addEventListener("mouseout", hoverFunc);
-	divImgInfo.addEventListener("click", highlightFunc);
-	divImg.addEventListener("click", highlightFunc);
+	divImgInfo.addEventListener("click", clickFunc);
+	divImg.addEventListener("click", clickFunc);
 
 	let parts = divClusterInfo.querySelectorAll(".img-info-part.size");
 	let bestPart = null, bestVal = 0, val = null;

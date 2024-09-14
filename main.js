@@ -5,6 +5,10 @@ const {
 	dialog,
 	ipcMain
 } = require("electron");
+const {
+	exec
+} = require("child_process");
+
 const path  = require("path");
 const fs    = require("fs");
 const sharp = require("sharp");
@@ -138,6 +142,10 @@ ipcMain.on("cancelSearch", (event, args) => {
 	State.started  = false;
 	State.paused   = false;
 	State.canceled = true;
+});
+
+ipcMain.on("openFileLocation", (event, path) => {
+	openFileBrowser(path);
 });
 
 class ImageFile {
@@ -484,5 +492,17 @@ function groupTogether(ifile1, ifile2) {
 				ifile2.icondata = icon2;
 			}
 		});
+	}
+}
+
+function openFileBrowser(path) {
+	if (process.platform === "win32") {
+		exec(`explorer /select,"${path}"`);
+	} else if (process.platform === "darwin") {
+		exec(`open -R "${path}"`);
+	} else if (process.platform === "linux") {
+		exec(`xdg-open "${path}"`);
+	} else {
+		console.error("Unsupported platform");
 	}
 }

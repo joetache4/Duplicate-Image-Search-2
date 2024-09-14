@@ -7,13 +7,15 @@ const {
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld(
     "api", {
+		// renderer -> main
         send: (channel, data) => {
             // whitelist channels
-            let validChannels = ["pendingSearch", "pauseSearch", "resumeSearch", "cancelSearch"];
+            let validChannels = ["pendingSearch", "pauseSearch", "resumeSearch", "cancelSearch", "openFileLocation"];
             if (validChannels.includes(channel)) {
                 ipcRenderer.send(channel, data);
             }
         },
+		// main -> renderer
         receive: (channel, func) => {
             let validChannels = ["startSearch", "cancelPendingSearch", "updateProgress", "duplicateFound", "endSearch"];
             if (validChannels.includes(channel)) {

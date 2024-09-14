@@ -5,6 +5,7 @@ This is an [Electron](https://www.electronjs.org/docs/latest/tutorial/tutorial-p
 
 ## Improvements over Duplicate Image Search
 - faster searching and thumbnail generation
+- crtl-click to show an image's location in the file browser
 
 ## Useage
 Click `run.bat` or run `npm start`.
