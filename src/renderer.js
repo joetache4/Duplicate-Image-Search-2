@@ -6,7 +6,7 @@ const thumbnailOversample = 2;
 
 const State = {
 	isMouseDown        : false,
-	highlighted        : 0,
+	highlighted        : [],
 	highlightDirection : "",
 }
 
@@ -161,6 +161,7 @@ function updateUIDuplicateFound(ifile) {
 		b.addEventListener("click", () => {
 			c.classList.toggle("hidden");
 		});
+		State.highlighted.push(0);
 	}
 
 	const divImg = createChildDiv("div-img", divClusterImgs);
@@ -185,22 +186,31 @@ function updateUIDuplicateFound(ifile) {
 	divImgPath.textContent = ifile.relpath;
 
 	mouseOverFunc = (event) => {
+		const clusterNum = document.querySelectorAll(".cluster-num")[ifile.clusterID];
 		divImgInfo.classList.add("hovered");
 		divImg.classList.add("hovered");
 		if (State.isMouseDown) {
 			if (divImgInfo.classList.contains("highlighted")) {
 				if (State.highlightDirection !== "adding") {
-					State.highlightDirection = "removing";
-					State.highlighted--;
 					divImgInfo.classList.remove("highlighted");
 					divImg.classList.remove("highlighted");
+					State.highlightDirection = "removing";
+					State.highlighted[ifile.clusterID]--;
+					clusterNum.classList.remove("all-selected");
+					if (State.highlighted[ifile.clusterID] == 0) {
+						clusterNum.classList.remove("some-selected");
+					}
 				}
 			} else {
 				if (State.highlightDirection !== "removing") {
-					State.highlightDirection = "adding";
-					State.highlighted++;
 					divImgInfo.classList.add("highlighted");
 					divImg.classList.add("highlighted");
+					State.highlightDirection = "adding";
+					State.highlighted[ifile.clusterID]++;
+					clusterNum.classList.add("some-selected");
+					if (State.highlighted[ifile.clusterID] == divClusterImgs.children.length) {
+						clusterNum.classList.add("all-selected");
+					}
 				}
 			}
 		}
@@ -210,6 +220,7 @@ function updateUIDuplicateFound(ifile) {
 		divImg.classList.remove("hovered");
 	}
 	mouseDownFunc = (event) => {
+		const clusterNum = document.querySelectorAll(".cluster-num")[ifile.clusterID];
 		if (event.ctrlKey) {
 			event.stopPropagation();
 			window.api.send("openFileLocation", ifile.path);
@@ -217,11 +228,19 @@ function updateUIDuplicateFound(ifile) {
 			divImgInfo.classList.toggle("highlighted");
 			divImg.classList.toggle("highlighted");
 			if (divImgInfo.classList.contains("highlighted")) {
-				State.highlighted++;
 				State.highlightDirection = "adding";
+				State.highlighted[ifile.clusterID]++;
+				clusterNum.classList.add("some-selected");
+				if (State.highlighted[ifile.clusterID] == divClusterImgs.children.length) {
+					clusterNum.classList.add("all-selected");
+				}
 			} else {
-				State.highlighted--;
 				State.highlightDirection = "removing";
+				State.highlighted[ifile.clusterID]--;
+				clusterNum.classList.remove("all-selected");
+				if (State.highlighted[ifile.clusterID] == 0) {
+					clusterNum.classList.remove("some-selected");
+				}
 			}
 		}
 	}
