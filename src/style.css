@@ -350,6 +350,11 @@ textarea {
 	color: #BFBFBF;
 	padding: 0px 8px 0px 8px;
 	text-align: center;
+	cursor: pointer;
+}
+
+.cluster-num:hover {
+	background-color: #555;
 }
 
 .cluster-imgs {

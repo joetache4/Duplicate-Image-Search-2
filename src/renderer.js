@@ -62,6 +62,9 @@ window.api.receive("duplicateFound", (ifile) => {
 		const c = createChildDiv("cluster-content", a);
 		divClusterImgs = createChildDiv("cluster-imgs", c);
 		divClusterInfo = createChildDiv("cluster-info", c);
+		b.addEventListener("click", () => {
+			c.classList.toggle("hidden");
+		});
 	}
 
 	const divImg = createChildDiv("div-img", divClusterImgs);
