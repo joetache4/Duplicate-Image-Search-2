@@ -1,6 +1,7 @@
 const {
 	app,
 	BrowserWindow,
+	Menu,
 	dialog,
 	ipcMain
 } = require("electron");
@@ -38,6 +39,7 @@ function createWindow () {
 }
 
 app.whenReady().then(() => {
+	Menu.setApplicationMenu(null);
 	createWindow();
 	app.on("activate", function () {
 		if (BrowserWindow.getAllWindows().length === 0) createWindow();
