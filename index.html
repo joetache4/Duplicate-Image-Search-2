@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Duplicate Image Search</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' data: https://raw.githubusercontent.com"">
+	<link rel="stylesheet" type="text/css" href="./style.css">
+</head>
+
+<body>
+
+	<div class="options-page">
+
+	<h1>Duplicate Image Search</h1>
+
+	<div>
+	<div id="select-button" class="button tall-button" onclick="searchPending()">Select folder</div>
+	<div id="cancel-button" class="button hollow-button tall-button hidden" onclick="reloadPage()">Cancel Search</div>
+	</div>
+
+	<div class="fast-option noselect" onclick="clickCheckbox(event)">
+	<input type="checkbox" id="fast-option" onclick="updateLocalStorage()">
+	<div class="option-text">Read JPEG Thumbnails (<span class="tooltip right" data-tip="This may be faster for folders with many JPEGs, but it has a slightly higher chance to mismatch images. TODO: Currently not implemented.">Recommended</span>)</div>
+	</div>
+
+	<div class="footer">
+	<p>It may take a few seconds for the search to start, depending on how many files are in the selected folder.</p>
+	<div class="social-links"><div class="img-rescale"><a href="https://github.com/joetache4/Duplicate-Image-Search-2" target="_blank"><img src="https://raw.githubusercontent.com/joetache4/Duplicate-Image-Search-2/master/github-mark-white.png" /></a></div></div>
+	</div>
+	</div>
+
+	<div class="header hidden">
+
+	<div class="header-title">
+	<h1>Duplicate Image Search</h1>
+	<div class="search-buttons">
+	<div id="button-pause-search" class="button narrow-button" onclick="togglePause()">Pause</div>
+	<div class="button narrow-button" onclick="reloadPage()">New Search</div>
+	</div>
+	</div>
+
+	<div class="progress">
+	<div class="progress-bar">
+	<div id="progress-bar-inner"></div>
+	</div>
+	<div class="progress-text"></div>
+	</div>
+
+	<div class="file-lists">
+	<span id="show-all-button"> (<span class="text-button" onclick="showAllList()">list all</span>)</span>
+	<span id="show-high-button"> (<span class="text-button" onclick="showHighlightedList()">list highlighted</span>)</span>
+	<span id="close-button" class="hidden"> (<span class="text-button" onclick="toggleList()">close list</span>)</span>
+	<span id="copy-button" class="hidden"> (<span class="text-button" onclick="copyListToClipboard()">copy list</span>)</span>
+	<span id="save-button" class="hidden"> (<span class="text-button" onclick="downloadList()">download list</span>)</span>
+	<textarea class="textarea" spellcheck="false"></textarea>
+	</div>
+	</div>
+
+	<div id="clusters" class="clusters hidden"></div>
+
+	<div id="message" class="hidden"></div>
+  <script src="./renderer.js"></script>
+  </body>
+</html>

@@ -1,0 +1,420 @@
+html, body {
+	height: 100%;
+	margin: 0px;
+}
+
+body {
+	font-family: 'Roboto', serif;
+	font-size: 14px;
+	color: #B3B3B3;
+	background-color: #333;
+}
+
+h1 {
+	font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+	color: #F44;
+	font-weight: bold;
+	letter-spacing: 0.1em;
+	font-size: 36px;
+}
+
+.button {
+	font-family: 'Roboto', serif;
+	font-size: 14px;
+	letter-spacing: 0.15em;
+	padding: 5px 14px 5px 14px;
+	border-radius: 5px;
+	cursor: pointer;
+	color: white;
+	display: inline-block;
+	background-color: #F44;
+	font-weight: bold;
+	text-decoration: none;
+}
+
+.button:hover {
+	background-color: #F66;
+}
+
+.hollow-button {
+	background-color: transparent;
+	border: 2px solid #F44;
+	padding: 3px 12px 3px 12px;
+}
+
+.hollow-button:hover {
+	background-color: #F44;
+}
+
+.narrow-button {
+	padding: 8px 12px;
+	font-size: 12px;
+	letter-spacing: 0.1em;
+}
+
+.tall-button {
+	line-height: 1.5;
+}
+
+.hidden {
+	display: none;
+}
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none; /* Safari */
+	 -khtml-user-select: none; /* Konqueror HTML */
+	   -moz-user-select: none; /* Old versions of Firefox */
+	    -ms-user-select: none; /* Internet Explorer/Edge */
+	        user-select: none; /* Non-prefixed version, currently
+	                              supported by Chrome, Edge, Opera and Firefox */
+}
+
+
+
+/* First "page" */
+
+.options-page {
+	font-size: 12px;
+	display: flex;
+	flex-direction: column;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+	height: 100%;
+	min-width: 500px;
+	min-height: 500px;
+	margin: 0 auto;
+}
+
+.options-page > h1 {
+	margin: 40px 0;
+}
+
+.fast-option {
+	display: flex;
+	flex-direction: row;
+	margin-top: 20px;
+}
+
+input[type="checkbox"] {
+	margin-right: 10px;
+	cursor: pointer;
+	accent-color: #F44;
+}
+
+.option-text {
+	line-height: 2;
+}
+
+/* https://blog.logrocket.com/creating-beautiful-tooltips-with-only-css/ */
+
+.tooltip {
+	position: relative;
+	border-bottom: 1px dashed #B3B3B3;
+}
+
+.tooltip:before {
+	content: attr(data-tip);
+	position: absolute;
+
+	/* vertically center */
+	top: 50%;
+	transform: translateY(-50%);
+
+	/* move to right */
+	left: 100%;
+	margin-left: 18px;
+
+	/* basic styles */
+	width: 300px;
+	padding: 10px;
+	border-radius: 10px;
+	background: #181818;
+	color: #FFF;
+	text-align: center;
+
+	visibility: hidden;
+	opacity: 0;
+	transition: 0.3s ease-in-out;
+}
+
+.tooltip:hover:before {
+	visibility: visible;
+	opacity: 1;
+	transition: opacity 0.3s ease-in-out;
+}
+
+.tooltip:after {
+	content: "";
+	position: absolute;
+
+	/* position tooltip correctly */
+	left: 100%;
+	margin-left: -2px;
+
+	/* vertically center */
+	top: 50%;
+	transform: translateY(-50%);
+
+	/* the arrow */
+	border: 10px solid #181818;
+	border-color: transparent #181818 transparent transparent;
+
+	visibility: hidden;
+	opacity: 0;
+	transition: 0.3s ease-in-out;
+}
+.tooltip:hover:before, .tooltip:hover:after {
+	visibility: visible;
+	opacity: 1;
+	transition: opacity 0.3s ease-in-out;
+}
+
+/*
+.tooltip {
+	font-weight: bold;
+	margin-left: 10px;
+	border-radius: 1.2ex;
+	padding: 1px;
+	border: 1px solid grey;
+	opacity: 80%;
+	cursor: pointer;
+}
+*/
+
+.footer {
+	border-top: 1px solid #F44;
+	margin-top: 80px;
+	margin-bottom: 20px;
+	color: grey;
+	font-size: 12px;
+	padding-top: 5px;
+}
+
+.social-links {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-top: 20px;
+}
+
+.img-rescale {
+	width: 40px;
+	height: 40px;
+	opacity: 0.4;
+}
+
+.img-rescale img {
+	width: 100%;
+	height: auto;
+}
+
+
+/* Second "page" */
+
+.header {
+	position: fixed;
+	top: 0;
+	width: 100%;
+	min-width: 700px;
+}
+
+.header-title {
+	height: 54px;
+	background-color: #383838;
+	border-bottom: 1px solid #272727;
+}
+
+.header-title > h1 {
+	font-size: 28px;
+	line-height: 1.45;
+	display: inline-block;
+	margin-left: 17px;
+	margin-top: 7px;
+	margin-bottom: 12px;
+}
+
+.search-buttons {
+	float: right;
+}
+
+.search-buttons > .button {
+	margin: 12px;
+}
+
+.progress {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	padding-left: 15px;
+	padding-top: 16px;
+	width: 100%;
+	background-color: #333;
+}
+
+.progress-bar {
+	width: 175px;
+	height: 8px;
+	margin-top: 6px;
+	margin-right: 14px;
+	overflow: hidden;
+	background-color: #F5F5F5;
+	border-radius: 4px;
+	-webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,.1);
+	box-shadow: inset 0 1px 2px rgba(0,0,0,.1);
+}
+
+#progress-bar-inner {
+	background-color: #F44;
+	width: 5%;
+	height: 8px;
+	border-radius: 4px;
+}
+
+.progress-text {
+	white-space: nowrap;
+	height: 34px;
+}
+
+.file-lists {
+	padding-left: 15px;
+	padding-bottom: 5px;
+	border-bottom: 1px solid #464646;
+	padding-right: 20px;
+	background-color: #333;
+}
+
+.file-lists > span {
+	margin-right: 5px;
+}
+
+.text-button {
+	color: #F44;
+	cursor: pointer;
+}
+
+textarea {
+	width: 100%;
+	height: 60px;
+}
+
+.textarea {
+	display: none;
+	margin-bottom: 14px;
+	font-size: 0.8em;
+	color: #dcdcdc;
+	background-color: #3A3A3A;
+	border-color: #6B6B6B;
+}
+
+.textareaon {
+	display: block;
+	width: 100%;
+	height: 160px;
+}
+
+#message {
+	width: fit-content;
+	max-width: 500px;
+	margin: 0 auto;
+	padding: 5px;
+	text-align: center;
+	background-color: #FFC;
+	color: #565656;
+	border-radius: 3px;
+
+	position: fixed;
+	top: 140px;
+	left: 50%;
+	transform: translate(-50%, 0%);
+	z-index: 1000;
+}
+
+.clusters {
+	margin-right: 20px;
+	margin-top: 72px;
+	margin-bottom: 40px;
+	padding-top: 102px;
+}
+
+.cluster {
+	display: flex;
+	flex-direction: row;
+	margin-bottom: 22px;
+}
+
+.cluster-num {
+	font-family: 'Roboto', serif;
+	font-size: 1.6em;
+	color: #BFBFBF;
+	padding: 0px 8px 0px 8px;
+	text-align: center;
+}
+
+.cluster-imgs {
+	display: flex;
+	flex-wrap: wrap;
+	margin-bottom: 5px;
+	cursor: pointer;
+}
+
+.div-img {
+	text-align: center;
+	margin: 0px 3px 3px 0px;
+	padding: 2px;
+}
+
+img {
+	vertical-align: middle;
+}
+
+.image-dims {
+	color: #B3B3B3;
+	background-color: #292929;
+	letter-spacing: 0.1em;
+	font-size: 13px;
+	padding: 3px;
+}
+
+.img-info {
+	color: #BFBFBF;
+	white-space: nowrap;
+	line-height: 1.42857143;
+	cursor: pointer;
+	font-family: Inconsolata, Roboto Mono, Courier New, Courier, monospace;
+}
+
+.best-part {
+	color: white;
+	font-weight: bold;
+}
+
+.img-info-part {
+	display: inline-block;
+	color: inherit;
+	font-family: inherit;
+	background-color: transparent;
+	padding: 3px 10px;
+}
+
+.img-info-part.size {
+	width: 30px;
+}
+
+.img-info-part.date {
+	width: 70px;
+}
+
+.hovered {
+	background-color: #555;
+}
+
+.highlighted {
+	color: white;
+	background-color: #F44;
+}
+
+.highlighted.hovered {
+	background-color: #F66;
+}
